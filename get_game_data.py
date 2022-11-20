@@ -8,16 +8,16 @@ GAME_DIR_PATTERN = "game"
 
 
 def find_game_paths(source):
-      games_paths = []
+      game_paths = []
 
       for root, dirs, files in os.walk(source):
             # os.walk "walks" recursively through the source directory that you pass and returns the root, dirs and files
-            for d in dirs:
-                  if GAME_DIR_PATTERN in d.lower():
-                        game_path = os.path.join(source, d)
-                        games_paths.append(game_path)
+            for directory in dirs:
+                  if GAME_DIR_PATTERN in directory.lower():
+                        game_path = os.path.join(source, directory)
+                        game_paths.append(game_path)
             break # We only want this func to run once in our case
-      return games_paths
+      return game_paths
 
 
 def get_name_from_path(paths, remove_from_pathname):
@@ -27,11 +27,19 @@ def get_name_from_path(paths, remove_from_pathname):
             _, dir_name = os.path.split(path)
             new_dirname = dir_name.replace(remove_from_pathname, '')
             new_names.append(new_dirname) 
+      
+      return new_names
 
 
 def create_target_dir(path):
       if not os.path.exists(path):
             os.mkdir(path)
+
+
+def copy_and_override(source, dest):
+      if os.path.exists(dest):
+            shutil.rmtree(dest) # rmtree works like a recursive delete
+      shutil.copytree(source, dest)
 
 
 def main(source, target):
@@ -42,9 +50,12 @@ def main(source, target):
 
       game_paths = find_game_paths(source_path)
       new_game_dirs = get_name_from_path(game_paths, "_game")
-      print(new_game_dirs)
 
       create_target_dir(target_path)
+      
+      for src, dest in zip(game_paths, new_game_dirs):
+            dest_path = os.path.join(target_path, dest)
+            copy_and_override(src, dest_path)
 
 
 # This checks if you run the file directly
