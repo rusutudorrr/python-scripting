@@ -1,0 +1,1 @@
+Python project for a better understanding of the pathlib, os and sys modules.
