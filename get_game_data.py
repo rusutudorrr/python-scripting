@@ -6,6 +6,10 @@ import sys # use to get accec to the cmd arguments
 
 GAME_DIR_PATTERN = "game"
 
+GAME_CODE_EXTENSION = ".go"
+
+COMPILE_COMMAND = ['go', 'build']
+
 
 def find_game_paths(source):
       game_paths = []
@@ -52,6 +56,32 @@ def make_json_metadata_file(path, game_dirs):
             json.dump(data, file)
 
 
+def compile_game_code(path):
+    code_file_name = None
+
+    for root, dirs, files in os.walk(path):
+        for file in files:
+            if file.endswith(GAME_CODE_EXTENSION):
+                code_file_name = file
+                break
+        break
+
+        if code_file_name is None:
+            return
+    
+    command = COMPILE_COMMAND + [code_file_name]
+    run_command(command, path)
+
+
+def run_command(command, path):
+    cwd = os.getcwd()
+    os.chdir(path)
+
+    result = run(command, stdout=PIPE, stdin=PIPE, universal_newlines=True)
+    print("Compile result: ", result)
+
+    os.chdir(cwd)
+
 def main(source, target):
       cwd = os.getcwd()
       source_path = os.path.join(cwd, source)
@@ -66,6 +96,7 @@ def main(source, target):
       for src, dest in zip(game_paths, new_game_dirs):
             dest_path = os.path.join(target_path, dest)
             copy_and_override(src, dest_path)
+            compile_game_code(dest_path)
 
       json_path = os.path.join(target_path, "metadata.json")
       make_json_metadata_file(json_path, new_game_dirs)
